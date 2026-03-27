@@ -219,71 +219,59 @@ risk:
 
 ## 🚦 Quick Start
 
-### 1. Create a Strategy
+### 1) Set up environment
 
-```python
-from trading_bot.strategies.base import BaseStrategy, StrategyMetadata
-from trading_bot.strategies.registry import register_strategy
-from trading_bot.core.types import Signal, SignalType, Side
-
-@register_strategy
-class MyStrategy(BaseStrategy):
-    
-    def _define_metadata(self) -> StrategyMetadata:
-        return StrategyMetadata(
-            name="my_strategy",
-            version="1.0.0",
-            warmup_periods=100,
-        )
-    
-    def _get_default_parameters(self):
-        return {"period": 14}
-    
-    def generate_signal(self, context):
-        # Your strategy logic here
-        if should_buy:
-            return Signal(
-                symbol=context.symbol,
-                signal_type=SignalType.ENTRY_LONG,
-                side=Side.BUY,
-                price=context.current_candle.close,
-            )
-        return None
+```bash
+python -m venv .venv
 ```
 
-### 2. Run Backtest
+Activate the virtual environment:
 
-```python
-from trading_bot.backtesting import BacktestEngine, BacktestConfig
-from trading_bot.strategies.examples.momentum import MomentumStrategy
-from datetime import datetime
+- **Windows (PowerShell):**
+  ```powershell
+  .\.venv\Scripts\Activate.ps1
+  ```
+- **Linux/Mac:**
+  ```bash
+  source .venv/bin/activate
+  ```
 
-config = BacktestConfig(
-    start_date=datetime(2024, 1, 1),
-    end_date=datetime(2024, 12, 31),
-    initial_capital=100000,
-)
+Install dependencies:
 
-engine = BacktestEngine(config)
-strategy = MomentumStrategy()
-
-# Load your historical data
-data = {"BTC/USDT": candles}
-
-result = engine.run(strategy, data)
-result.print_summary()
+```bash
+pip install -r requirements.txt
 ```
 
-### 3. Run Paper Trading
+### 2) Configure the bot
 
-```python
-from trading_bot import TradingBot, load_config
+Create your local config from the example:
 
-config = load_config("config.yaml")
-bot = TradingBot(config)
+```bash
+# Linux/Mac
+cp config.example.yaml config.yaml
 
-await bot.initialize()
-await bot.start()
+# Windows (PowerShell)
+Copy-Item config.example.yaml config.yaml
+```
+
+In `config.yaml`, set at least:
+
+- `mode` (`backtest`, `paper`, or `live`)
+- `exchange.id` (for example `binance`)
+- API credentials only if using `live`
+
+### 3) Run a mode
+
+```bash
+python run.py backtest
+python run.py paper
+python run.py live
+```
+
+Optional flags:
+
+```bash
+python run.py paper --config config.yaml --strategy momentum
 ```
 
 ## 📊 Metrics Tracked
