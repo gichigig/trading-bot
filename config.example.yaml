@@ -1,0 +1,239 @@
+# Trading Bot Configuration
+# ==========================
+# This is a sample configuration file. Copy to config.yaml and customize.
+
+# Bot identification
+bot_id: "my_trading_bot"
+version: "1.0.0"
+
+# Trading mode: backtest, paper, or live
+mode: "paper"
+
+# Data directory for persistence
+data_dir: "./data"
+
+# ========== EXCHANGE CONFIGURATION ==========
+# The bot uses CCXT which supports 100+ exchanges including:
+# binance, binanceus, coinbase, kraken, bybit, okx, kucoin, gate, bitfinex, etc.
+#
+# For live trading, create API keys on your exchange:
+#   1. Go to your exchange's API management page
+#   2. Create a new API key with "Spot Trading" permission
+#   3. IMPORTANT: Disable "Withdrawals" for safety
+#   4. Copy the key and secret below
+
+exchange:
+  # Exchange ID (use lowercase): binance, kraken, coinbase, bybit, okx, etc.
+  id: "binance"
+  
+  # API credentials (leave empty for paper trading/backtesting)
+  # For live trading, fill these in:
+  api_key: "jBNKTsnVSCrt2G7yaS3xrnQBBudnnBExmSPdt28lLaLbO387R7aHP77XSHHq3qIc"
+  api_secret: "ZPSXokf4AUV3ebqMHB6iGu6qsjAAEPgHpkbMsn2RgXJF7kounFnakF23yHN5gAwM"
+  passphrase: ""  # Only needed for some exchanges (Coinbase, OKX)
+  
+  # Use testnet/sandbox for testing (highly recommended!)
+  # Most exchanges offer testnet with fake money:
+  #   - Binance Testnet: https://testnet.binance.vision
+  #   - Bybit Testnet: https://testnet.bybit.com
+  testnet: true
+  sandbox: false
+  
+  # Rate limiting and timeouts
+  rate_limit: 100  # Requests per second
+  timeout: 30      # Seconds
+  max_retries: 3
+  
+  # Exchange-specific options (optional)
+  # options:
+  #   defaultType: "future"  # For futures trading
+  #   adjustForTimeDifference: true
+
+# Legacy format (still supported for multiple exchanges)
+exchanges:
+  - name: "binance"
+    testnet: true
+    api_key_encrypted: ""  # Use encryption tool to set
+    api_secret_encrypted: ""
+    rate_limit: 100
+    timeout: 30
+    max_retries: 3
+
+# ========== STRATEGY CONFIGURATION ==========
+strategies:
+  - name: "momentum"
+    version: "1.0.0"
+    enabled: true
+    allocation_pct: 50.0
+    
+    # Strategy-specific parameters
+    parameters:
+      fast_ema_period: 12
+      slow_ema_period: 26
+      rsi_period: 14
+      rsi_overbought: 70
+      rsi_oversold: 30
+      stop_loss_atr_mult: 2.0
+      take_profit_atr_mult: 3.0
+      require_htf_confirmation: true
+    
+    # Multi-timeframe settings
+    timeframes:
+      - "1h"
+      - "15m"
+    bias_timeframe: "4h"
+    execution_timeframe: "15m"
+    
+    # Symbols to trade
+    symbols:
+      - "BTC/USDT"
+      - "ETH/USDT"
+    
+    # Regime filters
+    regime_filters:
+      allowed_regimes:
+        - "trending_up"
+        - "trending_down"
+      min_volatility: 0.005
+      max_volatility: 0.05
+
+  - name: "mean_reversion"
+    version: "1.0.0"
+    enabled: true
+    allocation_pct: 30.0
+    
+    parameters:
+      lookback_period: 20
+      std_dev_entry: 2.0
+      std_dev_exit: 0.5
+      rsi_period: 14
+      rsi_overbought: 75
+      rsi_oversold: 25
+    
+    timeframes:
+      - "1h"
+    
+    symbols:
+      - "BTC/USDT"
+    
+    regime_filters:
+      allowed_regimes:
+        - "ranging"
+        - "low_volatility"
+
+# ========== RISK CONFIGURATION ==========
+risk:
+  # Per-trade risk
+  risk_per_trade_pct: 1.0
+  max_risk_per_trade_pct: 2.0
+  
+  # Position limits
+  max_position_size: 100000.0
+  max_positions: 5
+  max_correlated_positions: 3
+  correlation_threshold: 0.7
+  
+  # Daily limits (Circuit Breakers)
+  daily_max_loss_pct: 5.0
+  daily_max_loss_absolute: 1000.0
+  max_consecutive_losses: 5
+  max_drawdown_pct: 10.0
+  
+  # Volatility adjustments
+  volatility_scaling: true
+  min_volatility_multiplier: 0.5
+  max_volatility_multiplier: 2.0
+  
+  # Global panic stop
+  panic_stop_enabled: true
+  panic_stop_drawdown_pct: 15.0
+
+# ========== EXECUTION CONFIGURATION ==========
+execution:
+  default_order_type: "limit"
+  use_post_only: true
+  max_slippage_pct: 0.1
+  order_timeout_seconds: 30
+  retry_attempts: 3
+  retry_backoff_seconds: 1.0
+  partial_fill_threshold: 0.9
+
+# ========== REGIME DETECTION ==========
+regime:
+  # ATR settings
+  atr_period: 14
+  atr_threshold_high: 2.0
+  atr_threshold_low: 0.5
+  
+  # Trend detection
+  trend_ema_fast: 20
+  trend_ema_slow: 50
+  
+  # News blackouts (times in UTC)
+  news_blackout_windows:
+    - name: "FOMC"
+      day_of_week: 2  # Wednesday
+      hour: 18
+      duration_minutes: 120
+    - name: "NFP"
+      day_of_month: [1, 2, 3, 4, 5]  # First Friday
+      hour: 12
+      duration_minutes: 60
+
+# ========== ALERTING CONFIGURATION ==========
+alerts:
+  enabled: true
+  
+  # Telegram
+  telegram_enabled: false
+  telegram_token: ""
+  telegram_chat_id: ""
+  
+  # Discord
+  discord_enabled: false
+  discord_webhook: ""
+  
+  # Email
+  email_enabled: false
+  email_smtp_server: ""
+  email_smtp_port: 587
+  email_username: ""
+  email_password: ""
+  email_recipients: []
+  
+  # Alert triggers
+  alert_on_trade: true
+  alert_on_error: true
+  alert_on_risk_limit: true
+  alert_on_unusual_behavior: true
+  alert_on_bot_status: true
+
+# ========== LOGGING CONFIGURATION ==========
+logging:
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_dir: "./logs"
+  max_file_size_mb: 10
+  backup_count: 5
+  json_format: false
+
+# ========== DATA FEED CONFIGURATION ==========
+data:
+  # Historical data source
+  historical_source: "exchange"  # or "csv", "database"
+  
+  # Real-time data
+  use_websocket: true
+  
+  # Data validation
+  validate_candles: true
+  gap_threshold_minutes: 5
+  clock_drift_threshold_seconds: 30
+
+# ========== BACKTEST CONFIGURATION ==========
+backtest:
+  initial_capital: 100000.0
+  commission_pct: 0.1
+  slippage_pct: 0.05
+  spread_pct: 0.02
+  use_realistic_fills: true
+  warmup_periods: 200
